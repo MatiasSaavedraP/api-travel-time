@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 
 @Data
 @Entity
-@Table(name = "route_leg") 
+@Table(name = "route_leg", uniqueConstraints = { @UniqueConstraint(columnNames = {"loc_start", "loc_end"} )})
 public class RouteLeg {
 
     @Id
