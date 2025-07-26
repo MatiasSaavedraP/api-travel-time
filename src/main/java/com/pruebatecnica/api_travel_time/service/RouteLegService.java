@@ -10,7 +10,9 @@ import com.pruebatecnica.api_travel_time.model.RouteLeg;
 
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.Set;
 // import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +23,9 @@ public class RouteLegService {
 
     @Autowired
     private RouteLegRepository routeLegRepository;
+
+    @Autowired
+    private RoutingService routingService;
 
     public List<RouteLeg> getRougeLegs(){
         return routeLegRepository.findAll();
@@ -50,7 +55,20 @@ public class RouteLegService {
                 double travelTime = Double.parseDouble(line[2]);
                 legs.add(new RouteLeg(x, y, travelTime));
             }
-            saveRouteLegs(legs);
+
+            /// Comparacion de legs existentes:
+
+            List<Object[]> existentData = routeLegRepository.findAllLocStartAndLocEnd();
+            Set<String> existingPairs = existentData.stream()
+                        .map(arr -> arr[0] + "|" + arr[1])
+                        .collect(Collectors.toSet());
+
+            List<RouteLeg> newLegs = legs.stream()
+                        .filter(leg -> !existingPairs.contains(leg.getLocStart() + "|" + leg.getLocEnd()))
+                        .collect(Collectors.toList());
+
+            saveRouteLegs(newLegs);
+            routingService.init();
         }
     }
 
